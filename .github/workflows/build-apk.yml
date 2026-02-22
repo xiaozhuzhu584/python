@@ -1,0 +1,76 @@
+name: Build Flet APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # 2. 设置 Python 环境
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      # 3. 安装 Flutter (指定稳定版本，避免自动下载询问)
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+          flutter-version: '3.24.0'
+      
+      # 4. 接受 Android 许可证
+      - name: Accept Android licenses
+        run: yes | flutter doctor --android-licenses || true
+      
+      # 5. 安装 Flet 和 CLI 工具
+      - name: Install Flet
+        run: pip install flet flet-cli
+      
+      # 6. 设置环境变量：让 Flet 自动确认所有提示 (解决 EOFError)
+      - name: Set Flet auto-accept
+        run: echo "FLET_CLI_AUTO_ACCEPT=1" >> $GITHUB_ENV
+      
+      # 7. 检查环境信息 (方便排查问题)
+      - name: Check environment
+        run: |
+          echo "=== 文件列表 ==="
+          ls -la
+          echo "=== Flet 版本 ==="
+          flet --version
+          echo "=== Flutter 版本 ==="
+          flutter --version
+      
+      # 8. 构建 APK (使用 yes | 强制自动确认)
+      - name: Build APK
+        run: |
+          echo "=== 开始构建 ==="
+          yes | flet build apk
+          echo "=== 构建完成 ==="
+      
+      # 9. 上传成功的 APK
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flet-app-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+      
+      # 10. 如果失败，上传构建日志以便调试
+      - name: Upload build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-error-log
+          path: build/
+          retention-days: 7
