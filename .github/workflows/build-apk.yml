@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.10'
       
-      - name: Install Flutter (with cache)
+      - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -27,10 +27,8 @@ jobs:
           flutter-version: '3.24.0'
           cache: true
       
-      - name: Configure Flutter mirrors (China)
+      - name: Configure Mirrors
         run: |
-          export PUB_HOSTED_URL=https://pub.flutter-io.cn
-          export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
           echo "PUB_HOSTED_URL=https://pub.flutter-io.cn" >> $GITHUB_ENV
           echo "FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn" >> $GITHUB_ENV
       
@@ -43,15 +41,6 @@ jobs:
       - name: Set Flet auto-accept
         run: echo "FLET_CLI_AUTO_ACCEPT=1" >> $GITHUB_ENV
       
-      - name: Check files
-        run: |
-          echo "=== 文件列表 ==="
-          ls -la
-          echo "=== Flet 版本 ==="
-          flet --version
-          echo "=== Flutter 版本 ==="
-          flutter --version
-      
       - name: Build APK
         env:
           PUB_HOSTED_URL: https://pub.flutter-io.cn
@@ -61,19 +50,28 @@ jobs:
           flutter config --no-cli-animations
           yes | flet build apk
           echo "=== 构建完成 ==="
-      
-      - name: Upload APK
+          
+          # 🔍 关键步骤：自动查找所有生成的 APK 文件
+          echo "=== 正在查找 APK 文件... ==="
+          find . -name "*.apk" -type f
+          
+          # 创建输出目录（防止目录不存在）
+          mkdir -p apk_output
+          
+          # 复制找到的第一个 APK 到输出目录
+          FIRST_APK=$(find . -name "*.apk" -type f | head -n 1)
+          if [ -n "$FIRST_APK" ]; then
+            echo "找到 APK: $FIRST_APK"
+            cp "$FIRST_APK" apk_output/app-release.apk
+          else
+            echo "❌ 错误：未找到任何 APK 文件！"
+            exit 1
+          fi
+
+      - name: Upload APK (Auto-Detected)
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: flet-app-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 7
-      
-      - name: Upload build log
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-error-log
-          path: build/
+          path: apk_output/app-release.apk
           retention-days: 7
