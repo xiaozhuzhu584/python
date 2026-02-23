@@ -35,9 +35,6 @@ jobs:
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
       
-      - name: Install Flet (指定稳定版本)
-        run: pip install flet==0.21.0 flet-cli==0.21.0
-      
       - name: Set Flet auto-accept
         run: echo "FLET_CLI_AUTO_ACCEPT=1" >> $GITHUB_ENV
       
