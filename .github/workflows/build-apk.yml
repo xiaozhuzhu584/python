@@ -24,7 +24,7 @@ jobs:
         with:
           channel: 'stable'
           architecture: x64
-          flutter-version: '3.24.0'
+          flutter-version: '3.19.0'
           cache: true
       
       - name: Configure Mirrors
@@ -35,11 +35,18 @@ jobs:
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
       
-      - name: Install Flet
-        run: pip install flet flet-cli
+      - name: Install Flet (指定稳定版本)
+        run: pip install flet==0.21.0 flet-cli==0.21.0
       
       - name: Set Flet auto-accept
         run: echo "FLET_CLI_AUTO_ACCEPT=1" >> $GITHUB_ENV
+      
+      - name: Check main.py
+        run: |
+          echo "=== 文件列表 ==="
+          ls -la
+          echo "=== main.py 内容 ==="
+          cat main.py
       
       - name: Build APK
         env:
@@ -51,24 +58,20 @@ jobs:
           yes | flet build apk
           echo "=== 构建完成 ==="
           
-          # 🔍 关键步骤：自动查找所有生成的 APK 文件
-          echo "=== 正在查找 APK 文件... ==="
+          echo "=== 查找 APK 文件 ==="
           find . -name "*.apk" -type f
           
-          # 创建输出目录（防止目录不存在）
           mkdir -p apk_output
-          
-          # 复制找到的第一个 APK 到输出目录
           FIRST_APK=$(find . -name "*.apk" -type f | head -n 1)
           if [ -n "$FIRST_APK" ]; then
             echo "找到 APK: $FIRST_APK"
             cp "$FIRST_APK" apk_output/app-release.apk
           else
-            echo "❌ 错误：未找到任何 APK 文件！"
+            echo "❌ 未找到 APK 文件"
             exit 1
           fi
 
-      - name: Upload APK (Auto-Detected)
+      - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
