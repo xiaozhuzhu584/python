@@ -35,30 +35,22 @@ jobs:
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
       
-      - name: Install Flet (修复版本)
+      - name: Install Flet 0.23.0
         run: |
           pip install --upgrade pip
-          pip install flet==0.21.0 flet-cli==0.21.0
+          pip install flet==0.23.0 flet-cli==0.23.0
           echo "验证安装..."
           python -c "import flet; print(f'Flet version: {flet.__version__}')"
       
       - name: Add Python Scripts to PATH
         run: |
-          echo "/opt/hostedtoolcache/Python/3.10*/x64/bin" >> $GITHUB_PATH
           echo "/home/runner/.local/bin" >> $GITHUB_PATH
           which flet || echo "flet not found in PATH"
       
       - name: Check Flet Installation
         run: |
-          echo "=== 检查 Python 环境 ==="
-          which python
-          python --version
-          
-          echo "=== 检查 Flet 安装 ==="
+          echo "=== 检查 Flet ==="
           pip list | grep flet
-          
-          echo "=== 检查 Flet 命令 ==="
-          which flet || echo "flet command not found"
           python -m flet --help
           
           echo "=== 检查 main.py ==="
