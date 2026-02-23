@@ -35,10 +35,10 @@ jobs:
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
       
-      - name: Install Flet 0.23.0
+      - name: Install Compatible Versions
         run: |
           pip install --upgrade pip
-          pip install flet==0.23.0 flet-cli==0.23.0
+          pip install flet==0.23.0 flet-cli==0.25.0  # 兼容版本组合
           echo "验证安装..."
           python -c "import flet; print(f'Flet version: {flet.__version__}')"
       
