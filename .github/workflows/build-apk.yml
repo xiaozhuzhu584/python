@@ -35,10 +35,10 @@ jobs:
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
       
-      - name: Install Latest Flet (No Version Lock)
+      - name: Install Latest Flet
         run: |
           pip install --upgrade pip
-          pip install flet flet-cli  # 不锁定版本，让 pip 自动解决依赖
+          pip install flet flet-cli
           echo "验证安装..."
           python -c "import flet; print(f'Flet version: {flet.__version__}')"
       
@@ -51,7 +51,9 @@ jobs:
         run: |
           echo "=== 检查 Flet ==="
           pip list | grep flet
-          python -m flet --help
+          
+          # 使用正确的命令检查
+          flet --help
           
           echo "=== 检查 main.py ==="
           ls -la
@@ -65,8 +67,8 @@ jobs:
           echo "=== 开始构建 ==="
           flutter config --no-cli-animations
           
-          # 使用 python -m 方式调用 flet
-          python -m flet build apk
+          # 使用正确的命令构建 APK
+          flet build apk
           
           echo "=== 构建完成 ==="
           
